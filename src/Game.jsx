@@ -361,7 +361,7 @@ export default function Game() {
         className={`text-3xl font-bold mb-4 
           ${isDark ? 'text-white' : 'text-gray-900'}`}
       >
-        Угадай архитектурный стиль
+        Не ебите мозг, я сам не понимаю
       </h1>
       <div className={`w-full max-w-md rounded-xl p-4 space-y-4 transition-colors duration-300
           ${isDark 
@@ -375,7 +375,7 @@ export default function Game() {
             ${isDark ? 'bg-gray-600 border-gray-500' : 'bg-gray-100 border-gray-300'}`}>
             <div className="text-center">
                 <div className="text-xl font-bold text-green-500">{currentStreak}</div>
-                <div className="text-xs opacity-75">Стрик</div>
+                <div className="text-xs opacity-75">Хуик</div>
             </div>
             <div className="text-center">
                 <div className="text-xl font-bold text-yellow-500">{totalGamesPlayed}</div>
@@ -428,7 +428,7 @@ export default function Game() {
         ) : (
           <div className="text-center bg-green-50 border border-green-400 rounded-lg p-4 animate-fade-in">
             <p className="text-2xl font-extrabold text-green-700 mb-2">
-              🎉 Победа! Это {targetStyle.name}
+              🎉 Андрей поздравляю! Это {targetStyle.name}
             </p>
             <p className="text-lg font-semibold text-green-600 mb-3">
               Стрик: {currentStreak} / Всего побед: {totalGamesWon}
@@ -496,7 +496,7 @@ export default function Game() {
             }`}
         >
           <span>
-            {isListOpen ? 'Скрыть список стилей' : 'Показать все архитектурные стили'}
+            {isListOpen ? 'стас гей и лох<3' : 'Показать все архитектурные стили'}
           </span>
           <svg 
             className={`w-5 h-5 transition-transform duration-300 ${isListOpen ? 'rotate-180' : 'rotate-0'}`} 
