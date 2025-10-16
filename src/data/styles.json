@@ -7,7 +7,7 @@
       "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Hasak_-_Der_Dom_zu_K%C3%B6ln_-_Bild_18_Westansicht_Boisseree.jpg/1024px-Hasak_-_Der_Dom_zu_K%C3%B6ln_-_Bild_18_Westansicht_Boisseree.jpg",
       "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Laon%2C_Cath%C3%A9drale_Notre-Dame_PM_14294.jpg/500px-Laon%2C_Cath%C3%A9drale_Notre-Dame_PM_14294.jpg"
     ],
-    "period": "XII–XVI вв.",
+    "period": "12-16 век",
     "region": "Европа",
     "form": "арки и шпили",
     "materials": "камень",
@@ -23,7 +23,7 @@
       "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Hofkirche_im_Winter.jpg/500px-Hofkirche_im_Winter.jpg",
       "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Milotice_-_z%C3%A1mek.JPG/2560px-Milotice_-_z%C3%A1mek.JPG"
     ],
-    "period": "XVII–XVIII вв.",
+    "period": "17-18 век",
     "region": "Европа",
     "form": "купола и волнистые линии",
     "materials": "камень, мрамор",
@@ -38,7 +38,7 @@
       "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Moscow_Spiridonovka_Tarasov_Mansion_asv2021-07_img32.jpg/2560px-Moscow_Spiridonovka_Tarasov_Mansion_asv2021-07_img32.jpg",
       "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/St._Petersburg%2C_German_Embassy.jpg/1213px-St._Petersburg%2C_German_Embassy.jpg"
     ],
-    "period": "XVIII–XIX вв.",
+    "period": "18-19 век",
     "region": "Европа, США",
     "form": "колонны, портики",
     "materials": "камень, мрамор, штукатурка",
@@ -46,13 +46,13 @@
     "idea": "порядок, величие"
   },
   {
-    "name": "Античность",
+    "name": "Классика",
     "aliases": ["античность", "класика", "классический", "древний", "греческий", "римский", "классицизм"],
     "photoUrls": [
       "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Greece-0283_-_Temple_of_Hephaistos_%282215107461%29.jpg/500px-Greece-0283_-_Temple_of_Hephaistos_%282215107461%29.jpg",
       "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/2006_01_21_Ath%C3%A8nes_Parth%C3%A9non.JPG/500px-2006_01_21_Ath%C3%A8nes_Parth%C3%A9non.JPG"
     ],
-    "period": "VII в. до н.э. – V в. н.э.",
+    "period": "5 век",
     "region": "Средиземноморье",
     "form": "колонны, триглифы, портики",
     "materials": "мрамор, известняк, камень",
@@ -67,7 +67,7 @@
       "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Poitiers%2C_%C3%89glise_Notre-Dame_la_Grande-PM_31759.jpg/500px-Poitiers%2C_%C3%89glise_Notre-Dame_la_Grande-PM_31759.jpg",
       "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Coimbra_BW_2018-10-06_14-33-51_stitch.jpg/330px-Coimbra_BW_2018-10-06_14-33-51_stitch.jpg"
     ],
-    "period": "X–XII вв.",
+    "period": "10-12 век",
     "region": "Европа",
     "form": "толстые стены, полукруглые арки",
     "materials": "камень, кирпич",
@@ -76,13 +76,13 @@
   },
   {
     "name": "Палладианство",
-    "aliases": ["палладианский", "палладио", "паладианство"],
+    "aliases": ["палладианский", "палладио", "паладианство", "Палладианский"],
     "photoUrls": [
       "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Chiesa_di_San_Nicola_da_Tolentino_%28Venice%29.jpg/2560px-Chiesa_di_San_Nicola_da_Tolentino_%28Venice%29.jpg",
       "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/%D0%9F%D0%B0%D0%BB%D0%BB%D0%B0%D0%B4%D0%B8%D0%B5%D0%B2_%D0%BC%D1%80%D0%B0%D0%BC%D0%BE%D1%80%D0%BD%D1%8B%D0%B9_%D0%BC%D0%BE%D1%81%D1%82.jpg/960px-%D0%9F%D0%B0%D0%BB%D0%BB%D0%B0%D0%B4%D0%B8%D0%B5%D0%B2_%D0%BC%D1%80%D0%B0%D0%BC%D0%BE%D1%80%D0%BD%D1%8B%D0%B9_%D0%BC%D0%BE%D1%81%D1%82.jpg",
       "https://upload.wikimedia.org/wikipedia/commons/d/d7/Chiswick_House.jpg"
     ],
-    "period": "XVI–XIX вв.",
+    "period": "16-19 вв.",
     "region": "Европа, США, Россия",
     "form": "строгая симметрия, колоннады",
     "materials": "камень, штукатурка, кирпич",
@@ -98,7 +98,7 @@
       "https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Bordeaux_Notre-Dame_R01.jpg/1920px-Bordeaux_Notre-Dame_R01.jpg",
       "https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Pa%C5%82ac_Czapskich_w_Warszawie_2021.jpg/500px-Pa%C5%82ac_Czapskich_w_Warszawie_2021.jpg"
     ],
-    "period": "XVIII в.",
+    "period": "18 век",
     "region": "Европа (Франция, Германия)",
     "form": "камерный, изогнутые линии",
     "materials": "дерево, гипс, мрамор",
@@ -113,7 +113,7 @@
       "https://upload.wikimedia.org/wikipedia/commons/7/75/Moscow_dorogomilovo_3.jpg",
       "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/Moscow_lions_house_main.jpg/250px-Moscow_lions_house_main.jpg"
     ],
-    "period": "1930–1950 гг.",
+    "period": "20 век",
     "region": "СССР",
     "form": "башни, шпили, монументальность",
     "materials": "бетон, кирпич, гранит",
@@ -128,7 +128,7 @@
       "https://upload.wikimedia.org/wikipedia/commons/4/45/BirminghamUniversityChancellorsCourt.jpg",
       "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/10._%D0%93%D0%BE%D1%80%D0%BE%D0%B4%D0%BA%D1%96%D0%B2%D0%BA%D0%B0_%28%D0%9A%D0%BE%D1%81%D1%82%D0%B5%D0%BB_%D0%A1%D0%B2%D1%8F%D1%82%D0%BE%D1%97_%D0%9A%D0%BB%D0%B0%D1%80%D0%B8%29.jpg/2560px-10._%D0%93%D0%BE%D1%80%D0%BE%D0%B4%D0%BA%D1%96%D0%B2%D0%BA%D0%B0_%28%D0%9A%D0%BE%D1%81%D1%82%D0%B5%D0%BB_%D0%A1%D0%B2%D1%8F%D1%82%D0%BE%D1%97_%D0%9A%D0%BB%D0%B0%D1%80%D0%B8%29.jpg"
     ],
-    "period": "Середина XIX в. – Начало XX в.",
+    "period": "Середина 19 век – Начало 20 века",
     "region": "Глобально",
     "form": "смешение стилей, асимметрия",
     "materials": "кирпич, камень, металл",
