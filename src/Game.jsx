@@ -87,17 +87,12 @@ export default function Game() {
     wrong: "bg-gray-300 text-gray-700",
   };
   
-  // Расчет процента побед
-  const winRate = totalGamesPlayed > 0 
-      ? ((totalGamesWon / totalGamesPlayed) * 100).toFixed(1) 
-      : 0;
+  // ❌ УДАЛЕНО: Расчет процента побед больше не нужен
 
 
   // 1. ✅ ФУНКЦИЯ ИНИЦИАЛИЗАЦИИ ИГРЫ
   const startNewGame = useCallback(() => {
     
-    // ❌ УДАЛЕНО: Увеличение totalGamesPlayed и сброс currentStreak (теперь в handleGuess)
-
     // --- ЛОГИКА ВЫБОРА СТИЛЯ И ФОТОГРАФИИ ---
     
     let targetStyleObject;
@@ -311,8 +306,6 @@ export default function Game() {
         setCurrentStreak(0);
         localStorage.setItem('currentStreak', 0);
     }
-    // Если угадали не с первой попытки, стрик не сбрасывается, но и не увеличивается,
-    // что соответствует стандартной логике Worldle/Wordle-подобных игр.
 
     const newHints = generateHints(
       targetStyle,
@@ -377,7 +370,7 @@ export default function Game() {
           }`}
       >
       
-        {/* 💡 БЛОК СТАТИСТИКИ */}
+        {/* 💡 БЛОК СТАТИСТИКИ (Изменено: Процент побед заменен на Лучший стрик) */}
         <div className={`grid grid-cols-3 gap-2 p-3 rounded-lg border 
             ${isDark ? 'bg-gray-600 border-gray-500' : 'bg-gray-100 border-gray-300'}`}>
             <div className="text-center">
@@ -389,8 +382,8 @@ export default function Game() {
                 <div className="text-xs opacity-75">Всего игр</div>
             </div>
             <div className="text-center">
-                <div className="text-xl font-bold text-blue-500">{winRate}%</div>
-                <div className="text-xs opacity-75">Побед</div>
+                <div className="text-xl font-bold text-blue-500">{maxStreak}</div> {/* ⬅️ Лучший стрик */}
+                <div className="text-xs opacity-75">Лучший стрик</div> {/* ⬅️ Новый заголовок */}
             </div>
         </div>
 
