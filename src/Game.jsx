@@ -361,7 +361,7 @@ export default function Game() {
         className={`text-3xl font-bold mb-4 
           ${isDark ? 'text-white' : 'text-gray-900'}`}
       >
-        Не ебите мозг, я сам не понимаю
+        Спасибо, что поиграли. Может быть улучшу
       </h1>
       <div className={`w-full max-w-md rounded-xl p-4 space-y-4 transition-colors duration-300
           ${isDark 
@@ -496,7 +496,7 @@ export default function Game() {
             }`}
         >
           <span>
-            {isListOpen ? 'стас гей и лох<3' : 'Показать все архитектурные стили'}
+            {isListOpen ? 'стас не гей и не лох<3' : 'Показать все архитектурные стили'}
           </span>
           <svg 
             className={`w-5 h-5 transition-transform duration-300 ${isListOpen ? 'rotate-180' : 'rotate-0'}`} 
