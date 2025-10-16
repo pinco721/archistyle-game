@@ -55,7 +55,7 @@ export default function Game() {
   const [gameState, setGameState] = useState("playing");
   const [isAnimating, setIsAnimating] = useState(false);
   const [error, setError] = useState(null);
-  
+  const [isListOpen, setIsListOpen] = useState(false);
 
 
   useEffect(() => {
@@ -202,6 +202,7 @@ export default function Game() {
               : 'bg-white text-gray-900 shadow-lg'
           }`}
       >
+      
         {/* Фото с плавным появлением */}
         <div
           key={targetStyle?.currentPhotoUrl}
@@ -213,6 +214,7 @@ export default function Game() {
             className="w-full rounded-lg object-contain h-64"
           />
         </div>
+
 
         {/* Блок с вводом или победой */}
         {gameState === "playing" ? (
@@ -252,6 +254,7 @@ export default function Game() {
               Сыграть снова
             </button>
           </div>
+          
         )}
 
         {error && (
@@ -292,6 +295,48 @@ export default function Game() {
             </div>
           ))}
         </div>
+              <div className={`w-full max-w-xl p-4 transition-colors duration-300 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+        <button
+          onClick={() => setIsListOpen(!isListOpen)}
+          className={`flex justify-between items-center w-full p-3 font-semibold rounded-xl text-lg 
+            transition-all duration-300
+            ${isDark 
+              ? 'bg-gray-700 hover:bg-gray-600 text-white shadow-md' 
+              : 'bg-white hover:bg-gray-100 text-gray-900 border border-gray-200 shadow-md'
+            }`}
+        >
+          <span>
+            {isListOpen ? 'Скрыть список стилей' : 'Показать все архитектурные стили'}
+          </span>
+          <svg 
+            className={`w-5 h-5 transition-transform duration-300 ${isListOpen ? 'rotate-180' : 'rotate-0'}`} 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24" 
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </button>
+
+        <div
+          className={`overflow-hidden transition-max-height duration-500 ease-in-out 
+            ${isListOpen ? 'max-h-screen pt-4' : 'max-h-0'}`
+          }
+        >
+          <div 
+            className={`p-4 rounded-xl ${isDark ? 'bg-gray-800' : 'bg-white border border-gray-200'}`}
+          >
+            <ul className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 list-none">
+              {allStyles.map((style) => (
+                <li key={style.name} className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                  {style.name}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
       </div>
     </div>
   );
