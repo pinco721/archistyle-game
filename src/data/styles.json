@@ -224,5 +224,29 @@
     "materials": "кирпич, камень, металл",
     "decor": "богатый, несколько стилей",
     "idea": "свобода, разнообразие, историзм"
+  },
+  {
+    "name": "Ренессанс",
+    "aliases": [
+      "Архитектура Возрождения",
+      "ренессанс",
+      "возрождение",
+      "ренессансный",
+      "ренесанс",
+      "renaissance"
+    ],
+    "photoUrls": [
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/View_of_Santa_Maria_del_Fiore_in_Florence.jpg/1280px-View_of_Santa_Maria_del_Fiore_in_Florence.jpg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Via_della_Vigna_Nuova_18%2C_palazzo_rucellai%2C_02%2C0.jpg/1280px-Via_della_Vigna_Nuova_18%2C_palazzo_rucellai%2C_02%2C0.jpg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Basilica_di_San_Pietro_in_Vaticano_September_2015-1a.jpg/1280px-Basilica_di_San_Pietro_in_Vaticano_September_2015-1a.jpg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/07-Villa-Rotonda-Palladio.jpg/1280px-07-Villa-Rotonda-Palladio.jpg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/UNICEF_Innocenti_Research_Centre.jpg/1280px-UNICEF_Innocenti_Research_Centre.jpg",
+    ],
+    "period": "14-16 век",
+    "region": "Италия, затем Европа",
+    "form": "симметрия, пропорция, геометрические объёмы (куб, цилиндр), полукруглые арки",
+    "materials": "камень, мрамор, штукатурка",
+    "decor": "пилястры, скульптура в нишах, фрески, сдержанный орнамент",
+    "idea": "гармония, рациональность, обращение к античным идеалам"
   }
 ]
