@@ -3,6 +3,8 @@ import stylesData from "./data/styles.json";
 
 const allStyles = stylesData;
 
+
+
 const stylesMap = allStyles.reduce((acc, style) => {
   const allNames = [style.name.toLowerCase(), ...(style.aliases || [])];
   allNames.forEach((name) => {
@@ -29,14 +31,31 @@ const getRandomElement = (array) => {
 
 const formatLabel = (key) => HINT_KEYS_MAP[key] || key;
 
+const getInitialTheme = () => {
+  // 1. Проверяем, настроена ли тема в localStorage (если вы сохраняете выбор пользователя)
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme) {
+    return savedTheme === 'dark';
+  }
+
+  // 2. Если пользователь ничего не выбрал, проверяем системные настройки
+  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    return true; // Темная тема по умолчанию, если система ее предпочитает
+  }
+
+  // 3. В противном случае, по умолчанию используем темную тему
+  return true; 
+};
+
 export default function Game() {
+  const [isDark, setIsDark] = useState(getInitialTheme);
   const [targetStyle, setTargetStyle] = useState(null);
   const [guess, setGuess] = useState("");
   const [guessesHistory, setGuessesHistory] = useState([]);
   const [gameState, setGameState] = useState("playing");
   const [isAnimating, setIsAnimating] = useState(false);
   const [error, setError] = useState(null);
-  const [isDark, setIsDark] = useState(false);
+  
 
 
   useEffect(() => {
@@ -167,17 +186,22 @@ export default function Game() {
       {/* 🌙 Кнопка переключения темы */}
       <button
         onClick={() => setIsDark(!isDark)}
-        className="absolute top-4 right-4 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 px-3 py-2 rounded-lg shadow hover:scale-105 transition"
+        className="mb-4 bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-700 dark:bg-gray-200 dark:text-gray-900 dark:hover:bg-gray-300 transition"
       >
         {isDark ? '☀️ Светлая' : '🌙 Тёмная'}
       </button>
       <h1
-        className={`text-3xl font-bold mb-4 transition-colors duration-300 
+        className={`text-3xl font-bold mb-4 
           ${isDark ? 'text-white' : 'text-gray-900'}`}
       >
         Угадай архитектурный стиль
       </h1>
-      <div className="w-full max-w-md bg-white shadow-lg rounded-xl p-4 space-y-4">
+      <div className={`w-full max-w-md rounded-xl p-4 space-y-4 transition-colors duration-300
+          ${isDark 
+              ? 'bg-gray-700 text-white shadow-xl border border-gray-600' 
+              : 'bg-white text-gray-900 shadow-lg'
+          }`}
+      >
         {/* Фото с плавным появлением */}
         <div
           key={targetStyle?.currentPhotoUrl}
@@ -194,7 +218,11 @@ export default function Game() {
         {gameState === "playing" ? (
           <div className="flex space-x-2">
             <input
-              className="border border-gray-300 rounded-lg p-2 flex-1"
+              className={`border rounded-lg p-2 flex-1 transition-colors duration-300
+                ${isDark 
+                    ? 'bg-gray-800 text-white border-gray-600 placeholder-gray-400' 
+                    : 'bg-white text-gray-900 border-gray-300 placeholder-gray-500'
+                }`}
               placeholder="Введите стиль..."
               value={guess}
               onChange={(e) => setGuess(e.target.value)}
@@ -236,7 +264,11 @@ export default function Game() {
           {[...guessesHistory].reverse().map((attempt, attemptIdx) => (
             <div
               key={attemptIdx}
-              className="border p-3 rounded-xl bg-gray-50 shadow-sm"
+              className={`border p-3 rounded-xl shadow-sm ${
+                isDark
+                    ? 'bg-gray-600 border-gray-500'
+                    : 'bg-gray-50 border-gray-200'
+            }`}
             >
               <p className="font-semibold mb-2">
                 Попытка #{guessesHistory.length - attemptIdx}:{" "}
