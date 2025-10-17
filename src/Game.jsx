@@ -77,7 +77,7 @@ export default function Game() {
     partial: "bg-yellow-400 text-white",
     wrong: "bg-gray-300 text-gray-700",
   };
-  
+
 
 
   // 1. ✅ ФУНКЦИЯ ИНИЦИАЛИЗАЦИИ ИГРЫ
@@ -309,32 +309,7 @@ export default function Game() {
     <div
       className={`min-h-screen flex flex-col items-center transition-all duration-500 p-4 
         ${isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white'}`}
-    >
-      <div className="flex justify-between w-full max-w-md mb-4 space-x-2 items-center">
-        <button
-          onClick={() => {
-            const next = !isDark;
-            setIsDark(next);
-            localStorage.setItem('theme', next ? 'dark' : 'light');
-          }}
-          className="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-700 dark:bg-gray-200 dark:text-gray-900 dark:hover:bg-gray-300 transition text-sm shadow-md"
-        >
-          {isDark ? '☀️ Светлая' : '🌙 Тёмная'}
-        </button>
-        <button
-          onClick={handleReveal}
-          className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 font-semibold"
-          disabled={!targetStyle || isAnimating}
-        >
-          Подсказка
-        </button>
-         <button
-          onClick={resetProgress}
-          className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition text-sm shadow-md"
-        >
-          Сбросить прогресс
-        </button>
-      </div>
+    >      {/* панель кнопок перенесена вниз */}
 
       <h1
         className={`text-3xl font-bold mb-4 
@@ -378,27 +353,29 @@ export default function Game() {
           </div>
         </div>
 
-        <div
-          key={targetStyle?.currentPhotoUrl}
-          className="bg-gray-200 rounded-lg overflow-hidden animate-fade-in"
-        >
-          <img
-            src={targetStyle?.currentPhotoUrl}
-            alt={`Фото здания в стиле: ${targetStyle?.name || 'неизвестно'}`}
-            className="w-full rounded-lg object-contain h-64"
-            loading="lazy"
-            onError={(e) => {
-              e.target.onerror = null; 
-              e.target.src = "https://placehold.co/600x400/CCCCCC/333333?text=Фото+недоступно";
-            }}
-          />
-        </div>
+        {gameState !== 'finished' && targetStyle?.currentPhotoUrl && (
+          <div
+            key={targetStyle?.currentPhotoUrl}
+            className="bg-gray-200 rounded-lg overflow-hidden animate-fade-in"
+          >
+            <img
+              src={targetStyle?.currentPhotoUrl}
+              alt={`Фото здания в стиле: ${targetStyle?.name || 'неизвестно'}`}
+              className="w-full rounded-lg object-contain h-64"
+              loading="lazy"
+              onError={(e) => {
+                e.target.onerror = null; 
+                e.target.src = "https://placehold.co/600x400/CCCCCC/333333?text=Фото+недоступно";
+              }}
+            />
+          </div>
+        )}
 
         {gameState === "playing" ? (
           <div className="flex space-x-2">
-            <input
+            <div className="relative flex-1">
+              <input
               id="guess-input"
-              list="styles-list"
               className={`border rounded-lg p-2 flex-1 transition-colors duration-300
                 ${isDark 
                     ? 'bg-gray-800 text-white border-gray-600 placeholder-gray-400' 
@@ -409,7 +386,30 @@ export default function Game() {
               onChange={(e) => setGuess(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleGuess()}
               disabled={!targetStyle || isAnimating}
-            />
+              />
+              {/* Подсказки автодополнения — ширина равна инпуту */}
+              {guess.trim().length > 0 && (
+                <div className={`absolute left-0 right-0 top-full mt-1 max-h-48 overflow-auto rounded-lg border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} shadow-lg z-10`}> 
+                  {allStyles
+                    .filter((s) => {
+                      const q = guess.trim().toLowerCase();
+                      const names = [s.name, ...(s.aliases || [])].map(n => (n || '').toLowerCase());
+                      return names.some(n => n.startsWith(q));
+                    })
+                    .slice(0, 8)
+                    .map((s) => (
+                      <button
+                        key={s.name}
+                        type="button"
+                        onClick={() => setGuess(s.name)}
+                        className={`w-full text-left px-3 py-2 text-sm ${isDark ? 'hover:bg-gray-700 text-gray-100' : 'hover:bg-gray-100 text-gray-800'}`}
+                      >
+                        {s.name}
+                      </button>
+                    ))}
+                </div>
+              )}
+            </div>
             <button
               onClick={handleGuess}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 font-semibold"
@@ -417,11 +417,6 @@ export default function Game() {
             >
               Проверить
             </button>
-            <datalist id="styles-list">
-              {allStyles.map((style) => (
-                <option key={style.name} value={style.name} />
-              ))}
-            </datalist>
           </div>
         ) : gameState === "won" ? (
           <div className="text-center bg-green-50 border border-green-400 rounded-lg p-4 animate-fade-in">
@@ -445,9 +440,9 @@ export default function Game() {
             </p>
             <div className="mt-3 grid grid-cols-2 gap-2">
               {HINT_KEYS.map((key) => (
-                <div key={key} className={`rounded-lg p-2 text-center text-xs font-medium ${isDark ? 'bg-yellow-200 text-yellow-900' : 'bg-yellow-100 text-yellow-800'} border border-yellow-300`}>
-                  <div className="text-xs opacity-80">{key in (HINT_KEYS_MAP || {}) ? HINT_KEYS_MAP[key] : key}</div>
-                  <div className="text-sm">{targetStyle?.[key]}</div>
+                <div key={key} className={`rounded-lg p-2 text-center text-xs font-medium ${isDark ? 'bg-yellow-200 text-yellow-900' : 'bg-yellow-100 text-yellow-800'} border border-yellow-300 break-words`}>
+                  <div className="text-xs opacity-80 leading-tight">{key in (HINT_KEYS_MAP || {}) ? HINT_KEYS_MAP[key] : key}</div>
+                  <div className="text-sm leading-tight break-words">{targetStyle?.[key]}</div>
                 </div>
               ))}
             </div>
@@ -580,6 +575,39 @@ export default function Game() {
           </div>
         </div>
       </div>
+      </div>
+            {/* Панель кнопок под списком стилей */}
+            <div
+        className={`w-full max-w-md mt-6 flex flex-wrap justify-center gap-3 transition-colors duration-300
+          ${isDark ? 'text-gray-200' : 'text-gray-800'}`}
+      >
+        <button
+          onClick={handleReveal}
+          disabled={gameState !== "playing" || !targetStyle}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-semibold shadow-md 
+                    w-full sm:w-auto text-center transition-all"
+        >
+          Подсказка
+        </button>
+
+        <button
+          onClick={() => setIsDark(!isDark)}
+          className={`px-4 py-2 rounded-lg font-semibold shadow-md border w-full sm:w-auto text-center transition-all
+            ${isDark 
+              ? 'bg-gray-700 border-gray-600 hover:bg-gray-600 text-white' 
+              : 'bg-gray-100 border-gray-300 hover:bg-gray-200 text-gray-900'
+            }`}
+        >
+          {isDark ? '☀️ Светлая тема' : '🌙 Тёмная тема'}
+        </button>
+
+        <button
+          onClick={resetProgress}
+          className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 font-semibold shadow-md 
+                    w-full sm:w-auto text-center transition-all"
+        >
+          Сбросить прогресс
+        </button>
       </div>
     </div>
   );
