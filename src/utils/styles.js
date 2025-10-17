@@ -5,7 +5,9 @@ import stylesData from "../data/styles.json";
 export const allStyles = stylesData;
 
 export const stylesMap = allStyles.reduce((acc, style) => {
-  const allNames = [style.name.toLowerCase(), ...(style.aliases || [])];
+  const allNames = [style.name, ...(style.aliases || [])]
+    .filter(Boolean)
+    .map((n) => n.toLowerCase().trim());
   allNames.forEach((name) => {
     if (!acc[name]) acc[name] = style;
   });

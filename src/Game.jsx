@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 
 // Импорт констант и данных
 import { 
     allStyles, 
     stylesMap, 
-    HINT_KEYS 
+    HINT_KEYS,
+    HINT_KEYS_MAP
 } from "./utils/styles";
 
 // Импорт вспомогательных функций
@@ -48,6 +49,29 @@ export default function Game() {
   const [totalGamesPlayed, setTotalGamesPlayed] = useState(() => getInitialStat('totalGamesPlayed'));
   const [totalGamesWon, setTotalGamesWon] = useState(() => getInitialStat('totalGamesWon'));
 
+  // Пул включённых стилей (по умолчанию все включены)
+  const [enabledStyles, setEnabledStyles] = useState(() => {
+    const saved = localStorage.getItem('enabledStyles');
+    if (saved) {
+      try { return new Set(JSON.parse(saved)); } catch {}
+    }
+    return new Set(allStyles.map(s => s.name));
+  });
+
+  const enabledStylesArray = useMemo(() => {
+    const list = allStyles.filter(s => enabledStyles.has(s.name));
+    return list.length > 0 ? list : allStyles;
+  }, [enabledStyles]);
+
+  // Прогресс по фотографиям (только по включённому пулу)
+  const totalPhotos = useMemo(() => {
+    return enabledStylesArray.reduce((acc, s) => acc + ((s.photoUrls || []).length), 0);
+  }, [enabledStylesArray]);
+
+  const enabledPhotoUrls = useMemo(() => enabledStylesArray.flatMap(s => s.photoUrls || []), [enabledStylesArray]);
+  const seenCount = useMemo(() => enabledPhotoUrls.filter(url => seenPhotos.has(url)).length, [enabledPhotoUrls, seenPhotos]);
+  const progressPercent = totalPhotos > 0 ? Math.round((seenCount / totalPhotos) * 100) : 0;
+
   const colorMap = {
     correct: "bg-green-500 text-white",
     partial: "bg-yellow-400 text-white",
@@ -58,42 +82,37 @@ export default function Game() {
 
   // 1. ✅ ФУНКЦИЯ ИНИЦИАЛИЗАЦИИ ИГРЫ
   const startNewGame = useCallback(() => {
-    
-    // --- ЛОГИКА ВЫБОРА СТИЛЯ И ФОТОГРАФИИ ---
-    let targetStyleObject;
-    let availablePhotos;
-    
-    const availableStyles = allStyles.filter(style => !stylesInCurrentCycle.has(style.name));
+    // --- ЛОГИКА ВЫБОРА СТИЛЯ И ФОТОГРАФИИ БЕЗ ПОВТОРОВ ---
+    const allPhotoUrls = enabledStylesArray.flatMap((s) => s.photoUrls || []);
+    const unseenGlobal = allPhotoUrls.filter((url) => !seenPhotos.has(url));
 
-    if (availableStyles.length === 0) {
-        setStylesInCurrentCycle(new Set()); 
-        if (allStyles.length === 0) {
-             console.error("КРИТИЧЕСКАЯ ОШИБКА: Массив allStyles пуст. Проверьте styles.json.");
-             setTargetStyle(null); 
-             return; 
-        }
-        console.log("🔄 Все стили цикла просмотрены. Начинаем новый цикл.");
-        targetStyleObject = getRandomElement(allStyles);
-    } else {
-        targetStyleObject = getRandomElement(availableStyles);
+    if (unseenGlobal.length === 0) {
+      // Все фото всех стилей просмотрены хотя бы один раз
+      setTargetStyle(null);
+      setGameState('finished');
+      return;
     }
-    
+
+    // Выбираем только стили, где остались непоказанные фото
+    const stylesWithUnseen = enabledStylesArray.filter((style) =>
+      (style.photoUrls || []).some((url) => !seenPhotos.has(url))
+    );
+
+    const targetStyleObject = getRandomElement(stylesWithUnseen);
+
     if (!targetStyleObject) {
-        console.error("ОШИБКА: Не удалось выбрать стиль.");
-        setTargetStyle(null); 
-        return;
+      console.error("ОШИБКА: Не удалось выбрать стиль.");
+      setTargetStyle(null);
+      return;
     }
-    
-    setStylesInCurrentCycle(prevSet => new Set(prevSet.add(targetStyleObject.name)));
-    
-    const allUrls = targetStyleObject.photoUrls || [];
-    availablePhotos = allUrls.filter(url => !seenPhotos.has(url));
 
-    if (availablePhotos.length === 0) {
-        // Если все фото стиля были просмотрены, сбрасываем счетчик для этого стиля
-        availablePhotos = allUrls;
-    }
-    
+    setStylesInCurrentCycle(prevSet => {
+      const next = new Set(prevSet);
+      next.add(targetStyleObject.name);
+      return next;
+    });
+
+    const availablePhotos = (targetStyleObject.photoUrls || []).filter((url) => !seenPhotos.has(url));
     const randomPhotoUrl = getRandomElement(availablePhotos);
     
     if (!randomPhotoUrl) {
@@ -123,14 +142,7 @@ export default function Game() {
 
     console.log("✅ Инициализация завершена. Должна быть картинка.");
   }, [
-    stylesInCurrentCycle, 
-    seenPhotos, 
-    setTargetStyle, 
-    setGuessesHistory, 
-    setGuess, 
-    setGameState, 
-    setStylesInCurrentCycle, 
-    setSeenPhotos,
+    seenPhotos
   ]); // Зависимости обновлены
 
   // 2. ✅ useEffect для запуска игры (Фикс бесконечного цикла)
@@ -175,9 +187,10 @@ export default function Game() {
     setTotalGamesPlayed(0);
     setTotalGamesWon(0);
     
-    // Принудительный запуск новой игры с чистой статистикой
-    setGameState('playing'); 
-    startNewGame();
+    // Перезапуск игры через флаг и эффект, чтобы гарантировать актуальные зависимости
+    setHasMadeFirstGuess(false);
+    setGameState('playing');
+    setIsInitialized(false);
   };
 
 
@@ -207,9 +220,9 @@ export default function Game() {
 
     setIsAnimating(true);
 
-    const acceptableNames = targetStyle.aliases || [
-      targetStyle.name.toLowerCase(),
-    ];
+    const acceptableNames = (targetStyle.aliases || [targetStyle.name])
+      .filter(Boolean)
+      .map((n) => n.toLowerCase().trim());
     const isWin = acceptableNames.includes(userGuess);
 
     // 🔑 ФИКС 2: Логика стрика
@@ -257,6 +270,10 @@ export default function Game() {
 
     const totalAnimTime = (HINT_KEYS.length * 100) + 200;
 
+    if (isWin) {
+      setGameState("won");
+    }
+
     setTimeout(() => {
       setGuessesHistory((prev) => {
         const last = prev[prev.length - 1];
@@ -264,8 +281,28 @@ export default function Game() {
       });
       setGuess("");
       setIsAnimating(false);
-      if (isWin) setGameState("won");
+      // gameState при победе уже установлен выше
     }, totalAnimTime);
+  };
+
+  // Подсказка/Пропуск — показать ответ без изменения стрика
+  const handleReveal = () => {
+    if (!targetStyle || gameState !== 'playing') return;
+    setError(null);
+    setIsAnimating(false);
+    setGuess("");
+    // Сбрасываем стрик
+    setCurrentStreak(0);
+    localStorage.setItem('currentStreak', 0);
+    // Увеличиваем количество сыгранных игр
+    setTotalGamesPlayed(prev => {
+      const newTotal = prev + 1;
+      localStorage.setItem('totalGamesPlayed', newTotal);
+      return newTotal;
+    });
+    // Помечаем как сделанную первую попытку, чтобы не удвоить счётчик
+    setHasMadeFirstGuess(true);
+    setGameState('revealed');
   };
   
   return (
@@ -273,12 +310,23 @@ export default function Game() {
       className={`min-h-screen flex flex-col items-center transition-all duration-500 p-4 
         ${isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white'}`}
     >
-      <div className="flex justify-between w-full max-w-md mb-4 space-x-2">
+      <div className="flex justify-between w-full max-w-md mb-4 space-x-2 items-center">
         <button
-          onClick={() => setIsDark(!isDark)}
+          onClick={() => {
+            const next = !isDark;
+            setIsDark(next);
+            localStorage.setItem('theme', next ? 'dark' : 'light');
+          }}
           className="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-700 dark:bg-gray-200 dark:text-gray-900 dark:hover:bg-gray-300 transition text-sm shadow-md"
         >
           {isDark ? '☀️ Светлая' : '🌙 Тёмная'}
+        </button>
+        <button
+          onClick={handleReveal}
+          className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 font-semibold"
+          disabled={!targetStyle || isAnimating}
+        >
+          Подсказка
         </button>
          <button
           onClick={resetProgress}
@@ -292,7 +340,7 @@ export default function Game() {
         className={`text-3xl font-bold mb-4 
           ${isDark ? 'text-white' : 'text-gray-900'}`}
       >
-        Спасибо, что поиграли. Может быть улучшу
+        Угадай архитектурный стиль
       </h1>
       <div className={`w-full max-w-md rounded-xl p-4 space-y-4 transition-colors duration-300
           ${isDark 
@@ -301,21 +349,33 @@ export default function Game() {
           }`}
       >
       
-        {/* 💡 БЛОК СТАТИСТИКИ (Изменено: Процент побед заменен на Лучший стрик) */}
-        <div className={`grid grid-cols-3 gap-2 p-3 rounded-lg border 
-            ${isDark ? 'bg-gray-600 border-gray-500' : 'bg-gray-100 border-gray-300'}`}>
+        {/* 💡 БЛОК СТАТИСТИКИ + Прогресс по фото */}
+        <div className={`p-3 rounded-lg border ${isDark ? 'bg-gray-600 border-gray-500' : 'bg-gray-100 border-gray-300'}`}>
+          <div className="grid grid-cols-3 gap-2">
             <div className="text-center">
-                <div className="text-xl font-bold text-green-500">{currentStreak}</div>
-                <div className="text-xs opacity-75">Хуик</div>
+              <div className="text-xl font-bold text-green-500">{currentStreak}</div>
+              <div className="text-xs opacity-75">Текущий стрик</div>
             </div>
             <div className="text-center">
-                <div className="text-xl font-bold text-yellow-500">{totalGamesPlayed}</div>
-                <div className="text-xs opacity-75">Всего игр</div>
+              <div className="text-xl font-bold text-yellow-500">{totalGamesPlayed}</div>
+              <div className="text-xs opacity-75">Всего игр</div>
             </div>
             <div className="text-center">
-                <div className="text-xl font-bold text-blue-500">{maxStreak}</div> {/* ⬅️ Лучший стрик */}
-                <div className="text-xs opacity-75">Лучший стрик</div> {/* ⬅️ Новый заголовок */}
+              <div className="text-xl font-bold text-blue-500">{maxStreak}</div>
+              <div className="text-xs opacity-75">Лучший стрик</div>
             </div>
+          </div>
+          <div className="mt-3">
+            <div className={`w-full h-2 ${isDark ? 'bg-gray-500' : 'bg-gray-300'} rounded-full overflow-hidden`}>
+              <div
+                className="h-2 bg-blue-500 transition-all duration-500"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+            <div className={`text-xs text-center mt-1 ${isDark ? 'text-gray-200' : 'text-gray-600'}`}>
+              {seenCount} / {totalPhotos} ({progressPercent}%)
+            </div>
+          </div>
         </div>
 
         <div
@@ -324,11 +384,12 @@ export default function Game() {
         >
           <img
             src={targetStyle?.currentPhotoUrl}
-            alt="Архитектурное здание для угадывания"
+            alt={`Фото здания в стиле: ${targetStyle?.name || 'неизвестно'}`}
             className="w-full rounded-lg object-contain h-64"
+            loading="lazy"
             onError={(e) => {
               e.target.onerror = null; 
-              e.target.src = "https://placehold.co/600x400/CCCCCC/333333?text=ОШИБКА+ЗАГРУЗКИ+ФОТО";
+              e.target.src = "https://placehold.co/600x400/CCCCCC/333333?text=Фото+недоступно";
             }}
           />
         </div>
@@ -337,6 +398,7 @@ export default function Game() {
           <div className="flex space-x-2">
             <input
               id="guess-input"
+              list="styles-list"
               className={`border rounded-lg p-2 flex-1 transition-colors duration-300
                 ${isDark 
                     ? 'bg-gray-800 text-white border-gray-600 placeholder-gray-400' 
@@ -355,14 +417,16 @@ export default function Game() {
             >
               Проверить
             </button>
+            <datalist id="styles-list">
+              {allStyles.map((style) => (
+                <option key={style.name} value={style.name} />
+              ))}
+            </datalist>
           </div>
-        ) : (
+        ) : gameState === "won" ? (
           <div className="text-center bg-green-50 border border-green-400 rounded-lg p-4 animate-fade-in">
             <p className="text-2xl font-extrabold text-green-700 mb-2">
-              🎉 Андрей поздравляю! Это {targetStyle.name}
-            </p>
-            <p className="text-lg font-semibold text-green-600 mb-3">
-              Стрик: {currentStreak} / Всего побед: {totalGamesWon}
+              🎉 Верно! Это {targetStyle.name}
             </p>
             <button
               onClick={() => {
@@ -372,6 +436,44 @@ export default function Game() {
               className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700"
             >
               Сыграть снова
+            </button>
+          </div>
+        ) : gameState === "revealed" ? (
+          <div className="text-center bg-yellow-50 border border-yellow-400 rounded-lg p-4 animate-fade-in">
+            <p className="text-2xl font-extrabold text-yellow-700 mb-2">
+              ℹ️ Это {targetStyle.name}
+            </p>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              {HINT_KEYS.map((key) => (
+                <div key={key} className={`rounded-lg p-2 text-center text-xs font-medium ${isDark ? 'bg-yellow-200 text-yellow-900' : 'bg-yellow-100 text-yellow-800'} border border-yellow-300`}>
+                  <div className="text-xs opacity-80">{key in (HINT_KEYS_MAP || {}) ? HINT_KEYS_MAP[key] : key}</div>
+                  <div className="text-sm">{targetStyle?.[key]}</div>
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={() => {
+                startNewGame();
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              className="bg-yellow-600 text-white px-6 py-2 rounded-lg hover:bg-yellow-700 mt-3"
+            >
+              Следующее фото
+            </button>
+          </div>
+        ) : (
+          <div className="text-center bg-blue-50 border border-blue-400 rounded-lg p-4 animate-fade-in">
+            <p className="text-2xl font-extrabold text-blue-700 mb-2">
+              ✅ Все фотографии всех стилей просмотрены!
+            </p>
+            <p className="text-lg font-semibold text-blue-600 mb-3">
+              Вы можете сбросить прогресс и начать заново.
+            </p>
+            <button
+              onClick={resetProgress}
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+            >
+              Сбросить прогресс
             </button>
           </div>
         )}
@@ -415,7 +517,7 @@ export default function Game() {
           ))}
         </div>
         
-        {/* Список стилей */}
+        {/* Список стилей c управлением пулом */}
         <div className={`w-full max-w-xl p-4 transition-colors duration-300 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
         <button
           onClick={() => setIsListOpen(!isListOpen)}
@@ -427,7 +529,7 @@ export default function Game() {
             }`}
         >
           <span>
-            {isListOpen ? 'Список архитектурных стилей' : 'Показать все архитектурные стили'}
+            {isListOpen ? 'Выбор стилей для игры' : 'Открыть список стилей'}
           </span>
           <svg 
             className={`w-5 h-5 transition-transform duration-300 ${isListOpen ? 'rotate-180' : 'rotate-0'}`} 
@@ -449,11 +551,31 @@ export default function Game() {
             className={`p-4 rounded-xl ${isDark ? 'bg-gray-800' : 'bg-white border border-gray-200'}`}
           >
             <ul className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 list-none">
-              {allStyles.map((style) => (
-                <li key={style.name} className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                  {style.name}
-                </li>
-              ))}
+              {allStyles.map((style) => {
+                const checked = enabledStyles.has(style.name);
+                const textClass = checked ? (isDark ? 'text-gray-50' : 'text-gray-900') : (isDark ? 'text-gray-500' : 'text-gray-400');
+                const itemBg = checked ? (isDark ? 'bg-gray-700' : 'bg-white') : (isDark ? 'bg-gray-800' : 'bg-gray-100');
+                const borderCls = isDark ? 'border-gray-600' : 'border-gray-200';
+                return (
+                  <li key={style.name} className={`text-sm flex items-center space-x-2 rounded-md px-2 py-1 border ${itemBg} ${borderCls}`}>
+                    <input
+                      id={`style-${style.name}`}
+                      type="checkbox"
+                      className="h-4 w-4"
+                      checked={checked}
+                      onChange={(e) => {
+                        setEnabledStyles(prev => {
+                          const next = new Set(prev);
+                          if (e.target.checked) next.add(style.name); else next.delete(style.name);
+                          localStorage.setItem('enabledStyles', JSON.stringify(Array.from(next)));
+                          return next;
+                        });
+                      }}
+                    />
+                    <label htmlFor={`style-${style.name}`} className={textClass}>{style.name}</label>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         </div>
