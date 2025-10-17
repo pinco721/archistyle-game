@@ -1,54 +1,21 @@
 import { useState, useEffect, useCallback } from "react";
 
-// 🚨 ВНИМАНИЕ: Теперь файл styles.json существует в /data/styles.json
-import stylesData from "./data/styles.json"; 
+// Импорт констант и данных
+import { 
+    allStyles, 
+    stylesMap, 
+    HINT_KEYS 
+} from "./utils/styles";
 
-const allStyles = stylesData;
+// Импорт вспомогательных функций
+import { 
+    getRandomElement, 
+    getInitialTheme, 
+    getInitialStat 
+} from "./utils/helpers";
 
-// --- СТАТИЧЕСКИЕ ФУНКЦИИ И КОНСТАНТЫ (ВНЕ КОМПОНЕНТА) ---
-const stylesMap = allStyles.reduce((acc, style) => {
-  const allNames = [style.name.toLowerCase(), ...(style.aliases || [])];
-  allNames.forEach((name) => {
-    if (!acc[name]) acc[name] = style;
-  });
-  return acc;
-}, {});
-
-const HINT_KEYS_MAP = {
-  period: "Период",
-  region: "Регион",
-  form: "Форма",
-  materials: "Материалы",
-  decor: "Декор",
-  idea: "Идея",
-};
-const HINT_KEYS = Object.keys(HINT_KEYS_MAP);
-
-const getRandomElement = (array) => {
-  if (!array || array.length === 0) return null;
-  const randomIndex = Math.floor(Math.random() * array.length);
-  return array[randomIndex];
-};
-
-const formatLabel = (key) => HINT_KEYS_MAP[key] || key;
-
-const getInitialTheme = () => {
-  const savedTheme = localStorage.getItem('theme');
-  if (savedTheme) {
-    return savedTheme === 'dark';
-  }
-  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-    return true;
-  }
-  return true; 
-};
-
-// 💡 НОВАЯ ФУНКЦИЯ: Загрузка числовой статистики
-const getInitialStat = (key) => {
-  const saved = localStorage.getItem(key);
-  return saved ? parseInt(saved, 10) : 0;
-};
-
+// Импорт логики игры
+import { generateHints } from "./utils/gameLogic";
 
 export default function Game() {
   // --- СОСТОЯНИЯ (STATE) ---
@@ -87,14 +54,12 @@ export default function Game() {
     wrong: "bg-gray-300 text-gray-700",
   };
   
-  // ❌ УДАЛЕНО: Расчет процента побед больше не нужен
 
 
   // 1. ✅ ФУНКЦИЯ ИНИЦИАЛИЗАЦИИ ИГРЫ
   const startNewGame = useCallback(() => {
     
     // --- ЛОГИКА ВЫБОРА СТИЛЯ И ФОТОГРАФИИ ---
-    
     let targetStyleObject;
     let availablePhotos;
     
@@ -188,7 +153,7 @@ export default function Game() {
     }
   }, [isDark]);
 
-  // 4. 💡 НОВАЯ ФУНКЦИЯ: Полный сброс прогресса
+  // 4. 💡 Полный сброс прогресса
   const resetProgress = () => {
     const isConfirmed = window.confirm("Вы уверены, что хотите сбросить весь игровой прогресс (стрики, статистику, просмотренные фото)? Это действие необратимо.");
     
@@ -215,40 +180,6 @@ export default function Game() {
     startNewGame();
   };
 
-
-  const generateHints = (target, guessedStyle) => {
-    if (guessedStyle.isUnrecognized) {
-      return HINT_KEYS.map((key) => ({
-        key,
-        label: formatLabel(key),
-        status: "wrong",
-      }));
-    }
-
-    return HINT_KEYS.map((key) => {
-      const targetValue = target[key].toLowerCase().trim();
-      const guessValue = guessedStyle[key].toLowerCase().trim();
-
-      let status = "wrong";
-      if (guessValue === targetValue) {
-        status = "correct";
-      } else if (key === "period") {
-        // Улучшенная проверка на частичное совпадение (например, 18-19 век против 18 век)
-        const targetCenturies = targetValue.match(/(\d{1,2})|(\d{4})/g) || [];
-        const guessCenturies = guessValue.match(/(\d{1,2})|(\d{4})/g) || [];
-        const hasOverlap = targetCenturies.some((c) =>
-          guessCenturies.includes(c)
-        );
-        if (hasOverlap) status = "partial";
-      } else if (
-        targetValue.includes(guessValue) ||
-        guessValue.includes(targetValue)
-      ) {
-        status = "partial";
-      }
-      return { key, label: formatLabel(key), status };
-    });
-  };
 
   const handleGuess = () => {
     if (isAnimating || !guess.trim() || gameState !== "playing" || !targetStyle)
@@ -496,7 +427,7 @@ export default function Game() {
             }`}
         >
           <span>
-            {isListOpen ? 'стас не гей и не лох<3' : 'Показать все архитектурные стили'}
+            {isListOpen ? 'Список архитектурных стилей' : 'Показать все архитектурные стили'}
           </span>
           <svg 
             className={`w-5 h-5 transition-transform duration-300 ${isListOpen ? 'rotate-180' : 'rotate-0'}`} 
