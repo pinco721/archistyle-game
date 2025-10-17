@@ -7,11 +7,12 @@ const OUTPUT_JSON_FILE = path.join(__dirname, 'src', 'data', 'styles.json'); // 
 
 // 2. Стили, которые нужно обновить (имена подпапок)
 const STYLES_TO_UPDATE = {
-    'baroque': 'Архитектура барокко',
-    'gothic': 'Готическая архитектура',
-    'neoclassicism': 'Архитектура греческого возрождения',
-    'palladian': 'Палладианская архитектура',
-    'romanesque': 'Романская архитектура'
+    'baroque': 'Барокко',
+    'gothic': 'Готика',
+    'neoclassicism': 'Неоклассика',
+    'palladian': 'Палладианский',
+    'renaissance': 'Ренессанс',
+    'romanesque': 'Романский'
 };
 
 function generatePhotoUrls() {
