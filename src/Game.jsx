@@ -58,42 +58,37 @@ export default function Game() {
 
   // 1. ✅ ФУНКЦИЯ ИНИЦИАЛИЗАЦИИ ИГРЫ
   const startNewGame = useCallback(() => {
-    
-    // --- ЛОГИКА ВЫБОРА СТИЛЯ И ФОТОГРАФИИ ---
-    let targetStyleObject;
-    let availablePhotos;
-    
-    const availableStyles = allStyles.filter(style => !stylesInCurrentCycle.has(style.name));
+    // --- ЛОГИКА ВЫБОРА СТИЛЯ И ФОТОГРАФИИ БЕЗ ПОВТОРОВ ---
+    const allPhotoUrls = allStyles.flatMap((s) => s.photoUrls || []);
+    const unseenGlobal = allPhotoUrls.filter((url) => !seenPhotos.has(url));
 
-    if (availableStyles.length === 0) {
-        setStylesInCurrentCycle(new Set()); 
-        if (allStyles.length === 0) {
-             console.error("КРИТИЧЕСКАЯ ОШИБКА: Массив allStyles пуст. Проверьте styles.json.");
-             setTargetStyle(null); 
-             return; 
-        }
-        console.log("🔄 Все стили цикла просмотрены. Начинаем новый цикл.");
-        targetStyleObject = getRandomElement(allStyles);
-    } else {
-        targetStyleObject = getRandomElement(availableStyles);
+    if (unseenGlobal.length === 0) {
+      // Все фото всех стилей просмотрены хотя бы один раз
+      setTargetStyle(null);
+      setGameState('finished');
+      return;
     }
-    
+
+    // Выбираем только стили, где остались непоказанные фото
+    const stylesWithUnseen = allStyles.filter((style) =>
+      (style.photoUrls || []).some((url) => !seenPhotos.has(url))
+    );
+
+    const targetStyleObject = getRandomElement(stylesWithUnseen);
+
     if (!targetStyleObject) {
-        console.error("ОШИБКА: Не удалось выбрать стиль.");
-        setTargetStyle(null); 
-        return;
+      console.error("ОШИБКА: Не удалось выбрать стиль.");
+      setTargetStyle(null);
+      return;
     }
-    
-    setStylesInCurrentCycle(prevSet => new Set(prevSet.add(targetStyleObject.name)));
-    
-    const allUrls = targetStyleObject.photoUrls || [];
-    availablePhotos = allUrls.filter(url => !seenPhotos.has(url));
 
-    if (availablePhotos.length === 0) {
-        // Если все фото стиля были просмотрены, сбрасываем счетчик для этого стиля
-        availablePhotos = allUrls;
-    }
-    
+    setStylesInCurrentCycle(prevSet => {
+      const next = new Set(prevSet);
+      next.add(targetStyleObject.name);
+      return next;
+    });
+
+    const availablePhotos = (targetStyleObject.photoUrls || []).filter((url) => !seenPhotos.has(url));
     const randomPhotoUrl = getRandomElement(availablePhotos);
     
     if (!randomPhotoUrl) {
@@ -123,14 +118,7 @@ export default function Game() {
 
     console.log("✅ Инициализация завершена. Должна быть картинка.");
   }, [
-    stylesInCurrentCycle, 
-    seenPhotos, 
-    setTargetStyle, 
-    setGuessesHistory, 
-    setGuess, 
-    setGameState, 
-    setStylesInCurrentCycle, 
-    setSeenPhotos,
+    seenPhotos
   ]); // Зависимости обновлены
 
   // 2. ✅ useEffect для запуска игры (Фикс бесконечного цикла)
@@ -207,9 +195,9 @@ export default function Game() {
 
     setIsAnimating(true);
 
-    const acceptableNames = targetStyle.aliases || [
-      targetStyle.name.toLowerCase(),
-    ];
+    const acceptableNames = (targetStyle.aliases || [targetStyle.name])
+      .filter(Boolean)
+      .map((n) => n.toLowerCase().trim());
     const isWin = acceptableNames.includes(userGuess);
 
     // 🔑 ФИКС 2: Логика стрика
@@ -257,6 +245,10 @@ export default function Game() {
 
     const totalAnimTime = (HINT_KEYS.length * 100) + 200;
 
+    if (isWin) {
+      setGameState("won");
+    }
+
     setTimeout(() => {
       setGuessesHistory((prev) => {
         const last = prev[prev.length - 1];
@@ -264,7 +256,7 @@ export default function Game() {
       });
       setGuess("");
       setIsAnimating(false);
-      if (isWin) setGameState("won");
+      // gameState при победе уже установлен выше
     }, totalAnimTime);
   };
   
@@ -275,7 +267,11 @@ export default function Game() {
     >
       <div className="flex justify-between w-full max-w-md mb-4 space-x-2">
         <button
-          onClick={() => setIsDark(!isDark)}
+          onClick={() => {
+            const next = !isDark;
+            setIsDark(next);
+            localStorage.setItem('theme', next ? 'dark' : 'light');
+          }}
           className="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-700 dark:bg-gray-200 dark:text-gray-900 dark:hover:bg-gray-300 transition text-sm shadow-md"
         >
           {isDark ? '☀️ Светлая' : '🌙 Тёмная'}
@@ -292,7 +288,7 @@ export default function Game() {
         className={`text-3xl font-bold mb-4 
           ${isDark ? 'text-white' : 'text-gray-900'}`}
       >
-        Спасибо, что поиграли. Может быть улучшу
+        Угадай архитектурный стиль
       </h1>
       <div className={`w-full max-w-md rounded-xl p-4 space-y-4 transition-colors duration-300
           ${isDark 
@@ -306,7 +302,7 @@ export default function Game() {
             ${isDark ? 'bg-gray-600 border-gray-500' : 'bg-gray-100 border-gray-300'}`}>
             <div className="text-center">
                 <div className="text-xl font-bold text-green-500">{currentStreak}</div>
-                <div className="text-xs opacity-75">Хуик</div>
+                <div className="text-xs opacity-75">Текущий стрик</div>
             </div>
             <div className="text-center">
                 <div className="text-xl font-bold text-yellow-500">{totalGamesPlayed}</div>
@@ -324,11 +320,12 @@ export default function Game() {
         >
           <img
             src={targetStyle?.currentPhotoUrl}
-            alt="Архитектурное здание для угадывания"
+            alt={`Фото здания в стиле: ${targetStyle?.name || 'неизвестно'}`}
             className="w-full rounded-lg object-contain h-64"
+            loading="lazy"
             onError={(e) => {
               e.target.onerror = null; 
-              e.target.src = "https://placehold.co/600x400/CCCCCC/333333?text=ОШИБКА+ЗАГРУЗКИ+ФОТО";
+              e.target.src = "https://placehold.co/600x400/CCCCCC/333333?text=Фото+недоступно";
             }}
           />
         </div>
@@ -356,10 +353,10 @@ export default function Game() {
               Проверить
             </button>
           </div>
-        ) : (
+        ) : gameState === "won" ? (
           <div className="text-center bg-green-50 border border-green-400 rounded-lg p-4 animate-fade-in">
             <p className="text-2xl font-extrabold text-green-700 mb-2">
-              🎉 Андрей поздравляю! Это {targetStyle.name}
+              🎉 Верно! Это {targetStyle.name}
             </p>
             <p className="text-lg font-semibold text-green-600 mb-3">
               Стрик: {currentStreak} / Всего побед: {totalGamesWon}
@@ -372,6 +369,21 @@ export default function Game() {
               className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700"
             >
               Сыграть снова
+            </button>
+          </div>
+        ) : (
+          <div className="text-center bg-blue-50 border border-blue-400 rounded-lg p-4 animate-fade-in">
+            <p className="text-2xl font-extrabold text-blue-700 mb-2">
+              ✅ Все фотографии всех стилей просмотрены!
+            </p>
+            <p className="text-lg font-semibold text-blue-600 mb-3">
+              Вы можете сбросить прогресс и начать заново.
+            </p>
+            <button
+              onClick={resetProgress}
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+            >
+              Сбросить прогресс
             </button>
           </div>
         )}
